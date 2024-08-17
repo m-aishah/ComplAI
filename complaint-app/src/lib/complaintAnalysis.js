@@ -2,38 +2,33 @@ import openai from "./openai";
 
 export async function analyzeComplaint(complaintText) {
   try {
-    console.log("Analyzing complaint:", complaintText);
+    console.log("Analyzing text:", complaintText);
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
           content:
-            "You are an AI assistant that analyzes customer complaints and extracts specific information.",
+            "You are a helpful assistant that analyzes customer complaints. Please respond with a JSON object containing the following fields: isComplaint (boolean), customerName, product, subProduct, issue, and subIssue.",
         },
         {
           role: "user",
-          content: `Analyze the following complaint and extract the following information:
-            1. Customer Name
-            2. Product (general category of the complaint, e.g., "Credit card")
-            3. Sub-Product (more specific category, e.g., "Store credit card" or "General-purpose credit card")
-            4. Issue (main problem, e.g., "Problem with a purchase shown on your statement")
-            5. Sub-Issue (more detail about the issue, e.g., "Overcharged for something you did purchase with the card")
-
-            Complaint text: ${complaintText}
-
-            Provide the extracted information in a JSON format. If you can't determine a specific field, use "Unknown" as the value.`,
+          content: complaintText,
         },
       ],
       temperature: 0.7,
-      max_tokens: 500,
+      max_tokens: 200,
+      response_format: { type: "json_object" },
     });
 
     console.log("OpenAI response:", response);
-    const result = JSON.parse(response.choices[0].message.content);
+    const result =
+      typeof response.choices[0].message.content === "object"
+        ? response.choices[0].message.content
+        : JSON.parse(response.choices[0].message.content);
 
     return {
-      isComplaint: true,
+      isComplaint: result.isComplaint,
       customerName: result.customerName || "Unknown",
       product: result.product || "Unknown",
       subProduct: result.subProduct || "Unknown",

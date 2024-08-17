@@ -4,6 +4,7 @@ import { useState } from "react";
 const ComplaintForm = () => {
   const [complaintText, setComplaintText] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisHistory, setAnalysisHistory] = useState([]);
 
   const handleChange = (e) => {
     setComplaintText(e.target.value);
@@ -12,7 +13,10 @@ const ComplaintForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAnalysisResult(null);
-    await analyzeComplaint(complaintText);
+    const result = await analyzeComplaint(complaintText);
+    setAnalysisResult(result);
+    setAnalysisHistory((prevHistory) => [...prevHistory, result]);
+    setComplaintText("");
   };
 
   const analyzeComplaint = async (text) => {
@@ -26,7 +30,8 @@ const ComplaintForm = () => {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to analyze complaint");
+        console.error("API error:", errorData);
+        throw new Error(errorData.error || "Failed to analyze text");
       }
       const result = await response.json();
       setAnalysisResult(result);
@@ -35,9 +40,10 @@ const ComplaintForm = () => {
       if (result.isComplaint) {
         await saveToFirebase(result);
       }
+      return result;
     } catch (error) {
-      console.error("Error analyzing complaint:", error);
-      setAnalysisResult({ error: error.message });
+      console.error("Error analyzing text:", error);
+      return { error: error.message };
     }
   };
 
@@ -78,7 +84,7 @@ const ComplaintForm = () => {
 
       {analysisResult && (
         <div className="analysis-result">
-          <h3>Analysis Result:</h3>
+          <h3>Latest Analysis Result:</h3>
           {analysisResult.error ? (
             <p>{analysisResult.error}</p>
           ) : (
