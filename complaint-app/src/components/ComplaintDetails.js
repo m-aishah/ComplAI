@@ -3,10 +3,9 @@ import { Typography, Paper, IconButton, Divider, TextField, Button } from '@mui/
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 
-export default function ComplaintDetails({ complaint, onClose }) {
+export default function ComplaintDetails({ complaint}) {
   const [isEditing, setIsEditing] = useState(false);
   const [editableComplaint, setEditableComplaint] = useState(complaint);
-
   const handleEdit = () => {
     setIsEditing(!isEditing);
   };
@@ -24,12 +23,6 @@ export default function ComplaintDetails({ complaint, onClose }) {
 
   return (
     <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <IconButton
-        sx={{ position: 'absolute', top: 10, right: 10 }}
-        onClick={onClose}
-      >
-        <CloseIcon />
-      </IconButton>
       <Typography variant="h6" gutterBottom>
         Complaint Details
       </Typography>

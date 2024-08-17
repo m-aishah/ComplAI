@@ -1,14 +1,21 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { styled } from '@mui/system';
 
-// Mock data - replace with actual data fetching logic
 const complaints = [
   { id: 1, customer: 'John Doe', issue: 'Billing error', status: 'Open' },
   { id: 2, customer: 'Jane Smith', issue: 'Product malfunction', status: 'In Progress' },
   // Add more mock data as needed
 ];
 
-export default function ComplaintList({ onComplaintClick, searchTerm, filterStatus }) {
+const StyledTableRow = styled(TableRow)(({ theme, selected }) => ({
+  backgroundColor: selected ? theme.palette.action.selected : theme.palette.background.paper,
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+  },
+}));
+
+export default function ComplaintList({ onComplaintClick, searchTerm, filterStatus, selectedComplaintId }) {
   const filteredComplaints = complaints.filter(complaint => 
     complaint.customer.toLowerCase().includes(searchTerm.toLowerCase()) &&
     (filterStatus ? complaint.status === filterStatus : true)
@@ -27,16 +34,17 @@ export default function ComplaintList({ onComplaintClick, searchTerm, filterStat
         </TableHead>
         <TableBody>
           {filteredComplaints.map((complaint) => (
-            <TableRow 
-              key={complaint.id} 
-              onClick={() => onComplaintClick(complaint)} 
+            <StyledTableRow 
+              key={complaint.id}
+              onClick={() => onComplaintClick(complaint)}
+              selected={complaint.id === selectedComplaintId}
               sx={{ cursor: 'pointer' }}
             >
               <TableCell>{complaint.id}</TableCell>
               <TableCell>{complaint.customer}</TableCell>
               <TableCell>{complaint.issue}</TableCell>
               <TableCell>{complaint.status}</TableCell>
-            </TableRow>
+            </StyledTableRow>
           ))}
         </TableBody>
       </Table>

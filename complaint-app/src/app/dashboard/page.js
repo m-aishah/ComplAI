@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Box, Grid, Paper, Typography, Button, Dialog, 
   DialogTitle, DialogContent, DialogActions, MenuItem, 
-  Select, FormControl, InputLabel, IconButton, TextField, Divider
+  Select, FormControl, InputLabel, TextField, Divider
 } from '@mui/material';
 import { 
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend 
@@ -12,8 +12,7 @@ import Layout from '../../components/Layout';
 import ComplaintList from '../../components/ComplaintList';
 import ComplaintDetails from '../../components/ComplaintDetails';
 import ComplaintForm from '../../components/ComplaintForm';
-import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -44,6 +43,12 @@ export default function Dashboard() {
     setIsClient(true);
   }, []);
 
+  useEffect(() => {
+    if (!selectedComplaint && barData.length > 0) {
+      setSelectedComplaint(barData[0]);
+    }
+  }, [selectedComplaint]);
+
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
   
@@ -53,6 +58,7 @@ export default function Dashboard() {
 
   const handleComplaintClick = (complaint) => {
     setSelectedComplaint(complaint);
+    console.log('Selected complaint:', complaint);
   };
 
   const handleSearchChange = (event) => {
@@ -114,8 +120,8 @@ export default function Dashboard() {
               </Typography>
               <Box sx={{ width: '100%', height: '100%' }}>
                 <BarChart
-                  width='100%'
-                  height='100%'
+                  width={500}
+                  height={240}
                   data={barData}
                   margin={{
                     top: 20,
@@ -162,22 +168,36 @@ export default function Dashboard() {
                   </Select>
                 </FormControl>
               </Box>
-              <ComplaintList onComplaintClick={handleComplaintClick} searchTerm={searchTerm} filterStatus={filterStatus} />
+              <ComplaintList 
+                onComplaintClick={handleComplaintClick} 
+                searchTerm={searchTerm} 
+                filterStatus={filterStatus} 
+                selectedComplaintId={selectedComplaint?.id}
+              />
             </Paper>
           </Grid>
-          {selectedComplaint && (
-            <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6}>
+            {selectedComplaint && (
               <ComplaintDetails 
                 complaint={selectedComplaint} 
-                onClose={() => setSelectedComplaint(null)}
               />
-            </Grid>
-          )}
+            )}
+          </Grid>
         </Grid>
       </Box>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Add New Complaint</DialogTitle>
+      <Button 
+        variant="contained" 
+        color="primary" 
+        startIcon={<AddIcon />} 
+        onClick={handleOpenDialog}
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+      >
+        Add Complaint
+      </Button>
+
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Select Input Type</DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mt: 2 }}>
             <InputLabel id="input-type-label">Input Type</InputLabel>
@@ -190,7 +210,7 @@ export default function Dashboard() {
             >
               <MenuItem value="text">Text</MenuItem>
               <MenuItem value="voice">Voice</MenuItem>
-              <MenuItem value="image">Image</MenuItem>
+              <MenuItem value="image">Text & Picture</MenuItem>
               <MenuItem value="video">Video</MenuItem>
             </Select>
           </FormControl>
