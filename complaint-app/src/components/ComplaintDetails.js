@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Typography, Paper, IconButton, Divider, TextField, Button } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 
-export default function ComplaintDetails({ complaint}) {
+export default function ComplaintDetails({ complaint }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editableComplaint, setEditableComplaint] = useState(complaint);
+
+  // Update the editableComplaint state when the complaint prop changes
+  useEffect(() => {
+    setEditableComplaint(complaint);
+  }, [complaint]);
+
   const handleEdit = () => {
     setIsEditing(!isEditing);
   };

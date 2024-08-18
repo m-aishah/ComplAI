@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [openDialog, setOpenDialog] = useState(false);
   const [inputType, setInputType] = useState('');
   const [isClient, setIsClient] = useState(false);
+  // TODO: Make the initial state the first element in complaints
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
