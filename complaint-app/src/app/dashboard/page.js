@@ -79,7 +79,6 @@ export default function Dashboard() {
 
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
-
   const handleInputTypeChange = (event) => {
     setInputType(event.target.value);
   };
