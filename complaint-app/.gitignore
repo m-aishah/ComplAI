@@ -34,3 +34,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+#api's
+ruby-testing-432903-31147ec3cbaa.json
