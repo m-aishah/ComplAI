@@ -51,6 +51,8 @@ const ComplaintForm = () => {
     try {
       const db = getFirestore();
       const complaintToSave = {
+        title: complaintData.title,
+        status: complaintData.status,
         customerName: complaintData.customerName,
         product: complaintData.product,
         subProduct: complaintData.subProduct,
@@ -76,7 +78,8 @@ const ComplaintForm = () => {
           value={complaintText}
           onChange={handleChange}
           placeholder="Enter your complaint here..."
-          rows="6"
+          rows="10"
+          style={{ width: "100%", minHeight: "200px" }}
           required
         />
         <button type="submit">Analyze Complaint</button>
@@ -96,6 +99,8 @@ const ComplaintForm = () => {
               </p>
               {analysisResult.isComplaint && (
                 <>
+                  <p>Title: {analysisResult.title}</p>
+                  <p>Status: {analysisResult.status}</p>
                   <p>Customer Name: {analysisResult.customerName}</p>
                   <p>Product: {analysisResult.product}</p>
                   <p>Sub-Product: {analysisResult.subProduct}</p>
