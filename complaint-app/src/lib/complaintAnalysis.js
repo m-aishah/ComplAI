@@ -38,7 +38,7 @@ export async function analyzeComplaint(complaintText = "No complaint text provid
 
     // Use the retrieved context along with the user prompt
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4",
       messages: [
         {
           role: "system",
@@ -57,7 +57,7 @@ export async function analyzeComplaint(complaintText = "No complaint text provid
       ],
       temperature: 0.7,
       max_tokens: 200,
-      response_format: { type: "json_object" },
+      // response_format: { type: "json_object" },
     });
 
     const result =

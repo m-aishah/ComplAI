@@ -122,9 +122,9 @@ export default function Dashboard() {
     setFilterStatus(event.target.value);
   };
 
-  const handleAnalyze = (result, text) => {
+  const handleAnalyze = (result) => {
     setAnalysisResult(result);
-    setComplaintText(text);
+    setComplaintText(result.text || "");
   };
 
   const handleBack = () => {
@@ -279,7 +279,9 @@ export default function Dashboard() {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{analysisResult ? "Complaint Preview" : "Add Complaint"}</DialogTitle>
+        <DialogTitle>
+          {analysisResult ? "Complaint Preview" : "Add Complaint"}
+        </DialogTitle>
         <DialogContent>
           {analysisResult ? (
             <ComplaintPreview
@@ -318,3 +320,4 @@ export default function Dashboard() {
     </Layout>
   );
 }
+

@@ -1,9 +1,9 @@
-import { useState, useCallback } from "react";
 import { Box, Button } from "@mui/material";
-import TextInput from "./inputTypes/TextInput";
-import VoiceInput from "./inputTypes/VoiceInput";
+import { useCallback, useState } from "react";
 import ImageInput from "./inputTypes/ImageInput";
+import TextInput from "./inputTypes/TextInput";
 import VideoInput from "./inputTypes/VideoInput";
+import VoiceInput from "./inputTypes/VoiceInput";
 
 const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
   const [complaintData, setComplaintData] = useState({
@@ -17,10 +17,10 @@ const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // We just need to pass the text directly for analysis
-    const result = await analyzeComplaint(complaintData.text);
-    onAnalyze(result, complaintData.text);
+    if (complaintData.text) {
+      const result = await analyzeComplaint(complaintData.text);
+      onAnalyze(result);
+    }
   };
 
   const analyzeComplaint = async (text) => {
@@ -39,6 +39,7 @@ const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
         throw new Error(errorData.error || "Failed to analyze complaint");
       }
       const result = await response.json();
+      console.log("Analysis result:", result);
       return result;
     } catch (error) {
       console.error("Error analyzing complaint:", error);
