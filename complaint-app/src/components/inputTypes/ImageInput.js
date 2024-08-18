@@ -1,7 +1,6 @@
 import CloseIcon from "@mui/icons-material/Close";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { Box, IconButton, TextField, Typography } from "@mui/material";
-import Image from "next/image";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
@@ -24,7 +23,7 @@ const ImageInput = ({ onChange }) => {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: "image/*",
+    accept: "image/*,application/pdf",
     multiple: false,
   });
 
@@ -54,7 +53,7 @@ const ImageInput = ({ onChange }) => {
         <input {...getInputProps()} />
         {preview ? (
           <Box sx={{ position: "relative" }}>
-            <Image
+            <img
               src={preview}
               alt="Preview"
               style={{
@@ -79,8 +78,8 @@ const ImageInput = ({ onChange }) => {
             <CloudUploadIcon sx={{ fontSize: 48, color: "#999" }} />
             <Typography>
               {isDragActive
-                ? "Drop the image here"
-                : "Drag & drop an image here, or click to select"}
+                ? "Drop the file here"
+                : "Drag & drop a file here, or click to select"}
             </Typography>
           </Box>
         )}
