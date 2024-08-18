@@ -35,6 +35,9 @@ import ComplaintList from "../../components/ComplaintList";
 import Layout from "../../components/Layout";
 import ComplaintPreview from "../../components/ComplaintPreview";
 
+import { firestore } from "../../lib/firebase"; 
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 const COLORS = [
   "#0088FE",
   "#00C49F",
@@ -113,10 +116,23 @@ export default function Dashboard() {
     setAnalysisResult(null);
   };
 
-  const handleFinalSubmit = (finalResult) => {
-    // Handle final submission here
-    console.log("Final submission:", finalResult);
-    // You might want to send this data to your backend or update state
+  const handleFinalSubmit = async (finalResult) => {
+    try {
+      // Save the final result to Firestore
+      await addDoc(collection(firestore, "complaints"), {
+        isComplaint: finalResult.isComplaint,
+        customerName: finalResult.customerName,
+        product: finalResult.product,
+        subProduct: finalResult.subProduct,
+        issue: finalResult.issue,
+        subIssue: finalResult.subIssue,
+        status: finalResult.status || "Open", // Default to "Open" if no status is provided
+        createdAt: serverTimestamp(),
+      });
+      console.log("Complaint successfully added to Firestore:", finalResult);
+    } catch (error) {
+      console.error("Error adding complaint to Firestore:", error);
+    }
     handleCloseDialog();
   };
 

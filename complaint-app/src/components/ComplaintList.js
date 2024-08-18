@@ -1,6 +1,9 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { styled } from '@mui/system';
+import { useEffect, useState } from "react";
+import { firestore } from "../lib/firebase"; 
+import { collection, getDocs } from "firebase/firestore";
 
 const complaints = [
   { id: 1, customer: 'John Doe', issue: 'Billing error', status: 'Open' },
