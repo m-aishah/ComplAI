@@ -13,17 +13,14 @@ const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
 
   const handleChange = useCallback((newData) => {
     setComplaintData((prevData) => ({ ...prevData, ...newData }));
-    if (newData.text) {
-      analyzeComplaint(newData.text);
-    }
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // We just need to pass the text directly for analysis
-    const result = await analyzeComplaint(complaintData.text);
-    onAnalyze(result, complaintData.text);
+    if (complaintData.text) {
+      const result = await analyzeComplaint(complaintData.text);
+      onAnalyze(result);
+    }
   };
 
   const analyzeComplaint = async (text) => {
@@ -42,10 +39,11 @@ const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
         throw new Error(errorData.error || "Failed to analyze complaint");
       }
       const result = await response.json();
-      onAnalyze(result, text);
+      console.log("Analysis result:", result);
+      return result;
     } catch (error) {
       console.error("Error analyzing complaint:", error);
-      onAnalyze({ error: error.message }, text);
+      return { error: error.message };
     }
   };
 

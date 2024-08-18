@@ -3,7 +3,13 @@ import MicIcon from "@mui/icons-material/Mic";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
-import { Box, Button, IconButton, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  Typography,
+} from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 
 const VoiceInput = ({ onChange }) => {
@@ -11,7 +17,7 @@ const VoiceInput = ({ onChange }) => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioUrl, setAudioUrl] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const mediaRecorder = useRef(null);
   const audioRef = useRef(null);
   const timerRef = useRef(null);
@@ -34,7 +40,6 @@ const VoiceInput = ({ onChange }) => {
         audioBlob.current = new Blob(chunks, { type: "audio/webm" });
         const url = URL.createObjectURL(audioBlob.current);
         setAudioUrl(url);
-        setIsAnalyzed(false);
       };
 
       mediaRecorder.current.start();
@@ -61,6 +66,7 @@ const VoiceInput = ({ onChange }) => {
   };
 
   const transcribeAudio = async (blob) => {
+    setIsTranscribing(true);
     const formData = new FormData();
     formData.append("file", blob);
 
@@ -79,6 +85,8 @@ const VoiceInput = ({ onChange }) => {
     } catch (error) {
       console.error("Error transcribing audio:", error);
       return "Error transcribing audio";
+    } finally {
+      setIsTranscribing(false);
     }
   };
 
@@ -94,22 +102,20 @@ const VoiceInput = ({ onChange }) => {
   const deleteRecording = () => {
     setAudioUrl(null);
     setIsPlaying(false);
-    setIsAnalyzed(false);
     onChange({ file: null, text: "" });
   };
 
-  const handleAnalyze = async () => {
+  const handleTranscribe = async () => {
     if (!audioUrl) return;
 
     const transcription = await transcribeAudio(audioBlob.current);
     onChange({ file: audioBlob.current, text: transcription });
-    setIsAnalyzed(true);
   };
 
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-        {/* <canvas ref={canvasRef} width="300" height="60" /> */}
+        {isRecording && <Typography>Recording: {recordingTime}s</Typography>}
       </Box>
       <Box
         sx={{
@@ -136,21 +142,17 @@ const VoiceInput = ({ onChange }) => {
             <IconButton onClick={deleteRecording}>
               <DeleteIcon />
             </IconButton>
-            {!isAnalyzed && (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleAnalyze}
-              >
-                Analyze
-              </Button>
-            )}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleTranscribe}
+              disabled={isTranscribing}
+            >
+              {isTranscribing ? <CircularProgress size={24} /> : "Transcribe"}
+            </Button>
           </>
         )}
       </Box>
-      <Typography variant="body2" align="center">
-        {isRecording ? `Recording: ${recordingTime}s` : "Not recording"}
-      </Typography>
       {audioUrl && (
         <audio
           ref={audioRef}
