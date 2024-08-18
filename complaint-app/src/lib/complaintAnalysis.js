@@ -7,7 +7,7 @@ export async function analyzeComplaint(
     console.log("COmplaint text:", complaintText);
     console.log("Analyzing text:", complaintText);
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4",
       messages: [
         {
           role: "system",
@@ -21,7 +21,7 @@ export async function analyzeComplaint(
       ],
       temperature: 0.7,
       max_tokens: 200,
-      response_format: { type: "json_object" },
+      // response_format: { type: "json_object" },
     });
 
     console.log("OpenAI response:", response);
