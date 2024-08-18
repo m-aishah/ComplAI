@@ -36,8 +36,8 @@ export default function ComplaintList({
   console.log("Complaints in complaintList:", complaints);
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
+    <TableContainer component={Paper} sx={{ maxHeight: 400, overflow: 'auto' }}>
+      <Table stickyHeader>
         <TableHead>
           <TableRow>
             <TableCell>#</TableCell>

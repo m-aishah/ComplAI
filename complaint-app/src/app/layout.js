@@ -10,8 +10,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <title>App Title</title>
-        <meta name="description" content="App Description" />
+        <title>Ruby Complaint Management System</title>
+        <meta name="description" content="The Ruby Complaint Management System is a comprehensive tool designed to streamline the process of managing and analyzing customer complaints. " />
       </head>
       <body className={inter.className}>
         <AuthProvider>

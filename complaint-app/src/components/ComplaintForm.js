@@ -1,4 +1,4 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, CircularProgress } from "@mui/material";
 import { useCallback, useState } from "react";
 import ImageInput from "./inputTypes/ImageInput";
 import TextInput from "./inputTypes/TextInput";
@@ -11,6 +11,8 @@ const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
     file: null,
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleChange = useCallback((newData) => {
     setComplaintData((prevData) => ({ ...prevData, ...newData }));
   }, []);
@@ -18,8 +20,10 @@ const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (complaintData.text || complaintData.file) {
+      setIsLoading(true);
       const result = await analyzeComplaint(complaintData);
       onAnalyze(result);
+      setIsLoading(false);
     }
   };
 
@@ -66,8 +70,15 @@ const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
   return (
     <Box component="form" onSubmit={handleSubmit}>
       {renderInputComponent()}
-      <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
-        Analyze Complaint
+      <Button
+        type="submit"
+        variant="contained"
+        color="primary"
+        sx={{ mt: 2 }}
+        disabled={isLoading}
+        startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+      >
+        {isLoading ? "Analyzing..." : "Analyze Complaint"}
       </Button>
     </Box>
   );

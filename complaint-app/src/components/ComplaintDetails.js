@@ -1,5 +1,7 @@
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
+  Box,
   Button,
   Divider,
   IconButton,
@@ -8,14 +10,14 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase"; // Ensure you have Firebase configured and imported
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase"; 
 
-export default function ComplaintDetails({ complaint }) {
+export default function ComplaintDetails({ complaint, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editableComplaint, setEditableComplaint] = useState(complaint);
 
-  // Update the editableComplaint state when the complaint prop changes
+  
   useEffect(() => {
     setEditableComplaint(complaint);
   }, [complaint]);
@@ -47,6 +49,19 @@ export default function ComplaintDetails({ complaint }) {
       console.error("Error updating complaint:", error);
     } finally {
       setIsEditing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      // Delete the complaint from Firestore
+      const complaintRef = doc(db, "complaints", editableComplaint.id);
+      await deleteDoc(complaintRef);
+      console.log("Complaint deleted successfully");
+      
+      onDelete(editableComplaint.id);
+    } catch (error) {
+      console.error("Error deleting complaint:", error);
     }
   };
 
@@ -84,9 +99,14 @@ export default function ComplaintDetails({ complaint }) {
           <Typography variant="body1">
             <strong>Status:</strong> {editableComplaint.status}
           </Typography>
-          <IconButton sx={{ mt: 2 }} color="primary" onClick={handleEdit}>
-            <EditIcon />
-          </IconButton>
+          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+            <IconButton color="primary" onClick={handleEdit}>
+              <EditIcon />
+            </IconButton>
+            <IconButton color="error" onClick={handleDelete}>
+              <DeleteIcon />
+            </IconButton>
+          </Box>
         </>
       ) : (
         <>

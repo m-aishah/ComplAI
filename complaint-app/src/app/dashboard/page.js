@@ -159,6 +159,17 @@ export default function Dashboard() {
     setAnalysisResult(null);
   };
 
+  const handleDeleteComplaint = (deletedComplaintId) => {
+    const updatedComplaints = complaints.filter(c => c.id !== deletedComplaintId);
+    setComplaints(updatedComplaints);
+  
+    if (updatedComplaints.length > 0) {
+      setSelectedComplaint(updatedComplaints[0]); // Select the next complaint
+    } else {
+      setSelectedComplaint(null); // Clear selection if no complaints left
+    }
+  };
+
   const handleFinalSubmit = async (finalResult) => {
     try {
       // Save the finalResult to Firestore
@@ -301,7 +312,7 @@ export default function Dashboard() {
                   height: "100%",
                 }}
               >
-                <ComplaintDetails complaint={selectedComplaint} />
+                <ComplaintDetails complaint={selectedComplaint} onDelete={handleDeleteComplaint} />
               </Paper>
             )}
           </Grid>
