@@ -1,6 +1,8 @@
 import openai from "./openai";
 
-export async function analyzeComplaint(complaintText) {
+export async function analyzeComplaint(
+  complaintText = "No complaint text provided"
+) {
   try {
     console.log("Analyzing text:", complaintText);
     const response = await openai.chat.completions.create({
@@ -9,7 +11,7 @@ export async function analyzeComplaint(complaintText) {
         {
           role: "system",
           content:
-            "You are a helpful assistant that analyzes customer complaints. Please respond with a JSON object containing the following fields: isComplaint (boolean), customerName, product, subProduct, issue, and subIssue.",
+            "You are a helpful assistant that analyzes customer complaints. Please respond with a JSON object containing the following fields: isComplaint (boolean), title, customerName, product, subProduct, issue, subIssue and status.",
         },
         {
           role: "user",
@@ -29,11 +31,13 @@ export async function analyzeComplaint(complaintText) {
 
     return {
       isComplaint: result.isComplaint,
+      title: result.title || "Unknown",
       customerName: result.customerName || "Unknown",
       product: result.product || "Unknown",
       subProduct: result.subProduct || "Unknown",
       issue: result.issue || "Unknown",
       subIssue: result.subIssue || "Unknown",
+      status: result.status || "Unknown",
     };
   } catch (error) {
     console.error("Error in analyzeComplaint:", error);
