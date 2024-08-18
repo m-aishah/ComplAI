@@ -17,21 +17,22 @@ const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (complaintData.text) {
-      const result = await analyzeComplaint(complaintData.text);
+    if (complaintData.text || complaintData.file) {
+      const result = await analyzeComplaint(complaintData);
       onAnalyze(result);
     }
   };
 
-  const analyzeComplaint = async (text) => {
-    console.log("Text for analysis:", text);
+  const analyzeComplaint = async (data) => {
+    console.log("Data for analysis:", data);
     try {
+      const formData = new FormData();
+      if (data.text) formData.append("text", data.text);
+      if (data.file) formData.append("file", data.file);
+
       const response = await fetch("/api/analyzeComplaint", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text }),
+        body: formData,
       });
       if (!response.ok) {
         const errorData = await response.json();

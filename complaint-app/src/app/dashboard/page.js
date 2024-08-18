@@ -1,4 +1,11 @@
 "use client";
+import ComplaintDetails from "@/components/ComplaintDetails";
+import ComplaintForm from "@/components/ComplaintForm";
+import ComplaintList from "@/components/ComplaintList";
+import ComplaintPreview from "@/components/ComplaintPreview";
+import Layout from "@/components/Layout";
+import { useAuth } from "@/lib/AuthContext";
+import { db } from "@/lib/firebase"; // Import Firebase Firestore
 import AddIcon from "@mui/icons-material/Add";
 import {
   Box,
@@ -15,20 +22,30 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import {
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Chart,
+  Legend,
+  LinearScale,
+  Title,
+  Tooltip,
+} from "chart.js";
+import { addDoc, collection, onSnapshot, query } from "firebase/firestore";
+import { useRouter } from "next/navigation"; // Updated to next/navigation
 import { useEffect, useState } from "react";
 import { Bar, Doughnut } from "react-chartjs-2";
-import { useRouter } from "next/navigation"; // Updated to next/navigation
-import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase"; // Import Firebase Firestore
-import { addDoc, collection, query, onSnapshot } from "firebase/firestore";
-import Layout from "@/components/Layout";
-import ComplaintDetails from "@/components/ComplaintDetails";
-import ComplaintForm from "@/components/ComplaintForm";
-import ComplaintList from "@/components/ComplaintList";
-import ComplaintPreview from "@/components/ComplaintPreview";
-import { Chart, ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
-Chart.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+Chart.register(
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function Dashboard() {
   const { currentUser } = useAuth();
@@ -58,10 +75,10 @@ export default function Dashboard() {
         });
         setComplaints(complaintsData);
       });
-  
+
       return () => unsubscribe();
     }
-  }, [currentUser]);  
+  }, [currentUser]);
 
   const pieData = {
     labels: ["Open", "In Progress", "Resolved", "Closed"],
@@ -85,11 +102,22 @@ export default function Dashboard() {
     datasets: [
       {
         label: "Complaints",
-        data: complaints.reduce((acc, complaint) => {
-          const index = acc.labels.indexOf(complaint.issue);
-          acc.data[index] += 1;
-          return acc;
-        }, { labels: [...new Set(complaints.map((complaint) => complaint.issue))], data: Array([...new Set(complaints.map((complaint) => complaint.issue))].length).fill(0) }).data,
+        data: complaints.reduce(
+          (acc, complaint) => {
+            const index = acc.labels.indexOf(complaint.issue);
+            acc.data[index] += 1;
+            return acc;
+          },
+          {
+            labels: [
+              ...new Set(complaints.map((complaint) => complaint.issue)),
+            ],
+            data: Array(
+              [...new Set(complaints.map((complaint) => complaint.issue))]
+                .length
+            ).fill(0),
+          }
+        ).data,
         backgroundColor: "#36A2EB",
         borderColor: "#36A2EB",
         borderWidth: 1,
@@ -136,7 +164,7 @@ export default function Dashboard() {
       // Save the finalResult to Firestore
       await addDoc(collection(db, "complaints"), finalResult);
       alert("Complaint submitted successfully!");
-      handleCloseDialog(); 
+      handleCloseDialog();
     } catch (error) {
       console.error("Error adding complaint to Firestore:", error);
       alert("Failed to submit complaint. Please try again.");
@@ -146,121 +174,138 @@ export default function Dashboard() {
   return (
     <Layout>
       <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              display: "flex",
-              flexDirection: "column",
-              height: 200,  // Reduced height for better balance
-            }}
-          >
-            <Typography variant="h6" gutterBottom>
-              Total Complaints
-            </Typography>
-            <Typography
-              variant="h3"
-              component="div"
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={4}>
+            <Paper
               sx={{
-                flexGrow: 1,
+                p: 2,
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                flexDirection: "column",
+                height: 200, // Reduced height for better balance
               }}
             >
-              {complaints.length}
-            </Typography>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              display: "flex",
-              flexDirection: "column",
-              height: 240,
-            }}
-          >
-            <Typography variant="h6" gutterBottom>
-              Complaints Status
-            </Typography>
-            <Box
-              sx={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Doughnut data={pieData} options={{ maintainAspectRatio: false }} />
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              display: "flex",
-              flexDirection: "column",
-              height: 240,
-            }}
-          >
-            <Typography variant="h6" gutterBottom>
-              Complaints by Category
-            </Typography>
-            <Box sx={{ width: "100%", height: "100%" }}>
-              <Bar data={barData} options={{ maintainAspectRatio: false }} />
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, display: "flex", flexDirection: "column", height: '100%' }}>
-            <Box sx={{ mb: 2 }}>
               <Typography variant="h6" gutterBottom>
-                Recent Complaints
+                Total Complaints
               </Typography>
-              <TextField
-                variant="outlined"
-                label="Search"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                fullWidth
-                sx={{ mb: 2 }}
-              />
-              <FormControl fullWidth>
-                <InputLabel>Filter by Status</InputLabel>
-                <Select value={filterStatus} onChange={handleFilterChange}>
-                  <MenuItem value="">All</MenuItem>
-                  <MenuItem value="Open">Open</MenuItem>
-                  <MenuItem value="In Progress">In Progress</MenuItem>
-                  <MenuItem value="Resolved">Resolved</MenuItem>
-                  <MenuItem value="Closed">Closed</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <ComplaintList
-              complaints={complaints}
-              onComplaintClick={handleComplaintClick}
-              searchTerm={searchTerm}
-              filterStatus={filterStatus}
-              selectedComplaintId={selectedComplaint?.id}
-            />
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          {selectedComplaint && (
-            <Paper sx={{ p: 2, display: "flex", flexDirection: "column", height: '100%' }}>
-              <ComplaintDetails complaint={selectedComplaint} />
+              <Typography
+                variant="h3"
+                component="div"
+                sx={{
+                  flexGrow: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {complaints.length}
+              </Typography>
             </Paper>
-          )}
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Paper
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: 240,
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                Complaints Status
+              </Typography>
+              <Box
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Doughnut
+                  data={pieData}
+                  options={{ maintainAspectRatio: false }}
+                />
+              </Box>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Paper
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: 240,
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                Complaints by Category
+              </Typography>
+              <Box sx={{ width: "100%", height: "100%" }}>
+                <Bar data={barData} options={{ maintainAspectRatio: false }} />
+              </Box>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+              }}
+            >
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Recent Complaints
+                </Typography>
+                <TextField
+                  variant="outlined"
+                  label="Search"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  fullWidth
+                  sx={{ mb: 2 }}
+                />
+                <FormControl fullWidth>
+                  <InputLabel>Filter by Status</InputLabel>
+                  <Select value={filterStatus} onChange={handleFilterChange}>
+                    <MenuItem value="">All</MenuItem>
+                    <MenuItem value="Open">Open</MenuItem>
+                    <MenuItem value="In Progress">In Progress</MenuItem>
+                    <MenuItem value="Resolved">Resolved</MenuItem>
+                    <MenuItem value="Closed">Closed</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+              <ComplaintList
+                complaints={complaints}
+                onComplaintClick={handleComplaintClick}
+                searchTerm={searchTerm}
+                filterStatus={filterStatus}
+                selectedComplaintId={selectedComplaint?.id}
+              />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            {selectedComplaint && (
+              <Paper
+                sx={{
+                  p: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                }}
+              >
+                <ComplaintDetails complaint={selectedComplaint} />
+              </Paper>
+            )}
+          </Grid>
         </Grid>
-      </Grid>
       </Box>
 
       <Button
@@ -320,4 +365,3 @@ export default function Dashboard() {
     </Layout>
   );
 }
-
