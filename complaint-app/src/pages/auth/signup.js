@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import { auth } from '../../lib/firebase'; // Ensure the correct path
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { useRouter } from 'next/router';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useRouter } from "next/router";
+import { useState } from "react";
+import { auth } from "../../lib/firebase"; // Ensure the correct path
 
 const Signup = () => {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      router.push('/auth/login'); // Redirect to login page after successful signup
+      router.push("/auth/login"); // Redirect to login page after successful signup
     } catch (error) {
-      console.error('Signup failed:', error.message);
-      setError('Signup failed: ' + error.message); // Set error message to display to the user
+      console.error("Signup failed:", error.message);
+      setError("Signup failed: " + error.message); // Set error message to display to the user
     }
   };
 
@@ -44,7 +44,8 @@ const Signup = () => {
           />
         </div>
         <button type="submit">Sign Up</button>
-        {error && <p className="error-message">{error}</p>} {/* Display error message */}
+        {error && <p className="error-message">{error}</p>}{" "}
+        {/* Display error message */}
       </form>
     </div>
   );
