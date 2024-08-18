@@ -1,63 +1,60 @@
-import React, { useState } from 'react';
-import { Box, TextField, Button } from '@mui/material';
+import { useState } from "react";
+import { Box, TextField, Button } from "@mui/material";
 
-export default function ComplaintForm({ inputType }) {
-  const [complaintData, setComplaintData] = useState({});
+const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
+  const [complaintText, setComplaintText] = useState(initialText);
 
-  const handleInputChange = (event) => {
-    setComplaintData({ ...complaintData, [event.target.name]: event.target.value });
+  const handleChange = (e) => {
+    setComplaintText(e.target.value);
   };
 
-  const handleFileUpload = (event) => {
-    // Handle file upload logic here
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const result = await analyzeComplaint(complaintText);
+    onAnalyze(result, complaintText);
   };
 
-  const handleVoiceInput = () => {
-    // Implement voice input logic using Web Speech API
+  const analyzeComplaint = async (text) => {
+    try {
+      const response = await fetch("/api/analyzeComplaint", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("API error:", errorData);
+        throw new Error(errorData.error || "Failed to analyze text");
+      }
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error("Error analyzing text:", error);
+      return { error: error.message };
+    }
   };
 
-  switch (inputType) {
-    case 'text':
-      return (
-        <Box>
-          <TextField
-            fullWidth
-            margin="normal"
-            name="complaint"
-            label="Complaint Details"
-            multiline
-            rows={4}
-            onChange={handleInputChange}
-          />
-        </Box>
-      );
-    case 'voice':
-      return (
-        <Box>
-          <Button onClick={handleVoiceInput}>Start Voice Input</Button>
-          {/* Add transcription display here */}
-        </Box>
-      );
-    case 'image':
-    case 'video':
-      return (
-        <Box>
-          <input
-            accept={inputType === 'image' ? "image/*" : "video/*"}
-            style={{ display: 'none' }}
-            id="raised-button-file"
-            multiple
-            type="file"
-            onChange={handleFileUpload}
-          />
-          <label htmlFor="raised-button-file">
-            <Button variant="contained" component="span">
-              Upload {inputType === 'image' ? 'Image' : 'Video'}
-            </Button>
-          </label>
-        </Box>
-      );
-    default:
-      return null;
-  }
-}
+  return (
+    <Box>
+    <form onSubmit={handleSubmit}>
+      <TextField
+        value={complaintText}
+        onChange={handleChange}
+        placeholder="Enter your complaint here..."
+        fullWidth
+        multiline
+        rows={4}
+        variant="outlined"
+        margin="normal"
+      />
+      <Button type="submit" variant="contained" color="primary">
+        Analyze Complaint
+      </Button>
+    </form>
+  </Box>
+);
+};
+
+export default ComplaintForm;

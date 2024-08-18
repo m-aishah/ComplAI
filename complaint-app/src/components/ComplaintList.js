@@ -16,9 +16,10 @@ const StyledTableRow = styled(TableRow)(({ theme, selected }) => ({
 }));
 
 export default function ComplaintList({ onComplaintClick, searchTerm, filterStatus, selectedComplaintId }) {
-  const filteredComplaints = complaints.filter(complaint => 
-    complaint.customer.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (filterStatus ? complaint.status === filterStatus : true)
+  const filteredComplaints = complaints.filter(
+    (complaint) =>
+      complaint.customer?.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (filterStatus ? complaint.status === filterStatus : true)
   );
 
   return (
@@ -41,9 +42,9 @@ export default function ComplaintList({ onComplaintClick, searchTerm, filterStat
               sx={{ cursor: 'pointer' }}
             >
               <TableCell>{complaint.id}</TableCell>
-              <TableCell>{complaint.customer}</TableCell>
-              <TableCell>{complaint.issue}</TableCell>
-              <TableCell>{complaint.status}</TableCell>
+              <TableCell>{complaint.customer || 'Unknown Customer'}</TableCell>
+              <TableCell>{complaint.issue || 'No Issue Specified'}</TableCell>
+              <TableCell>{complaint.status || 'Unknown Status'}</TableCell>
             </StyledTableRow>
           ))}
         </TableBody>

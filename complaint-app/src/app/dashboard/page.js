@@ -1,44 +1,73 @@
-'use client'
-import React, { useState, useEffect } from 'react';
-import { 
-  Box, Grid, Paper, Typography, Button, Dialog, 
-  DialogTitle, DialogContent, DialogActions, MenuItem, 
-  Select, FormControl, InputLabel, TextField, Divider
-} from '@mui/material';
-import { 
-  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend 
-} from 'recharts';
-import Layout from '../../components/Layout';
-import ComplaintList from '../../components/ComplaintList';
-import ComplaintDetails from '../../components/ComplaintDetails';
-import ComplaintForm from '../../components/ComplaintForm';
-import AddIcon from '@mui/icons-material/Add';
+"use client";
+import AddIcon from "@mui/icons-material/Add";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+  Typography,
+} from "@mui/material";
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+import { useEffect, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import ComplaintDetails from "../../components/ComplaintDetails";
+import ComplaintForm from "../../components/ComplaintForm";
+import ComplaintList from "../../components/ComplaintList";
+import Layout from "../../components/Layout";
+import ComplaintPreview from "../../components/ComplaintPreview";
+
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#8884d8",
+  "#82ca9d",
+];
 
 const pieData = [
-  { name: 'Open', value: 32 },
-  { name: 'In Progress', value: 52 },
-  { name: 'Resolved', value: 47 },
-  { name: 'Closed', value: 40 },
+  { name: "Open", value: 32 },
+  { name: "In Progress", value: 52 },
+  { name: "Resolved", value: 47 },
+  { name: "Closed", value: 40 },
 ];
 
 const barData = [
-  { name: 'Billing', complaints: 65 },
-  { name: 'Product', complaints: 45 },
-  { name: 'Service', complaints: 98 },
-  { name: 'Delivery', complaints: 39 },
-  { name: 'Other', complaints: 43 },
+  { name: "Billing", complaints: 65 },
+  { name: "Product", complaints: 45 },
+  { name: "Service", complaints: 98 },
+  { name: "Delivery", complaints: 39 },
+  { name: "Other", complaints: 43 },
 ];
 
 export default function Dashboard() {
   const [openDialog, setOpenDialog] = useState(false);
-  const [inputType, setInputType] = useState('');
+  const [inputType, setInputType] = useState("");
   const [isClient, setIsClient] = useState(false);
-  // TODO: Make the initial state the first element in complaints
   const [selectedComplaint, setSelectedComplaint] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [complaintText, setComplaintText] = useState("");
 
   useEffect(() => {
     setIsClient(true);
@@ -51,15 +80,20 @@ export default function Dashboard() {
   }, [selectedComplaint]);
 
   const handleOpenDialog = () => setOpenDialog(true);
-  const handleCloseDialog = () => setOpenDialog(false);
-  
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setAnalysisResult(null);
+    setComplaintText("");
+    setInputType("");
+  };
+
   const handleInputTypeChange = (event) => {
     setInputType(event.target.value);
   };
 
   const handleComplaintClick = (complaint) => {
     setSelectedComplaint(complaint);
-    console.log('Selected complaint:', complaint);
+    console.log("Selected complaint:", complaint);
   };
 
   const handleSearchChange = (event) => {
@@ -70,8 +104,24 @@ export default function Dashboard() {
     setFilterStatus(event.target.value);
   };
 
+  const handleAnalyze = (result, text) => {
+    setAnalysisResult(result);
+    setComplaintText(text);
+  };
+
+  const handleBack = () => {
+    setAnalysisResult(null);
+  };
+
+  const handleFinalSubmit = (finalResult) => {
+    // Handle final submission here
+    console.log("Final submission:", finalResult);
+    // You might want to send this data to your backend or update state
+    handleCloseDialog();
+  };
+
   if (!isClient) {
-    return null; 
+    return null;
   }
 
   return (
@@ -79,21 +129,52 @@ export default function Dashboard() {
       <Box sx={{ flexGrow: 1, p: 3 }}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={3}>
-            <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 240 }}>
+            <Paper
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: 240,
+              }}
+            >
               <Typography variant="h6" gutterBottom>
                 Total Complaints
               </Typography>
-              <Typography variant="h3" component="div" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Typography
+                variant="h3"
+                component="div"
+                sx={{
+                  flexGrow: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 171
               </Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} md={6} lg={3}>
-            <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 240 }}>
+            <Paper
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: 240,
+              }}
+            >
               <Typography variant="h6" gutterBottom>
                 Complaints Status
               </Typography>
-              <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
                 <PieChart width={160} height={160}>
                   <Pie
                     data={pieData}
@@ -106,7 +187,10 @@ export default function Dashboard() {
                     dataKey="value"
                   >
                     {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -115,11 +199,18 @@ export default function Dashboard() {
             </Paper>
           </Grid>
           <Grid item xs={12} lg={6}>
-            <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 240 }}>
+            <Paper
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: 240,
+              }}
+            >
               <Typography variant="h6" gutterBottom>
                 Complaints by Category
               </Typography>
-              <Box sx={{ width: '100%', height: '100%' }}>
+              <Box sx={{ width: "100%", height: "100%" }}>
                 <BarChart
                   width={500}
                   height={240}
@@ -142,7 +233,7 @@ export default function Dashboard() {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+            <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   Recent Complaints
@@ -157,10 +248,7 @@ export default function Dashboard() {
                 />
                 <FormControl fullWidth>
                   <InputLabel>Filter by Status</InputLabel>
-                  <Select
-                    value={filterStatus}
-                    onChange={handleFilterChange}
-                  >
+                  <Select value={filterStatus} onChange={handleFilterChange}>
                     <MenuItem value="">All</MenuItem>
                     <MenuItem value="Open">Open</MenuItem>
                     <MenuItem value="In Progress">In Progress</MenuItem>
@@ -169,60 +257,73 @@ export default function Dashboard() {
                   </Select>
                 </FormControl>
               </Box>
-              <ComplaintList 
-                onComplaintClick={handleComplaintClick} 
-                searchTerm={searchTerm} 
-                filterStatus={filterStatus} 
+              <ComplaintList
+                onComplaintClick={handleComplaintClick}
+                searchTerm={searchTerm}
+                filterStatus={filterStatus}
                 selectedComplaintId={selectedComplaint?.id}
               />
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
             {selectedComplaint && (
-              <ComplaintDetails 
-                complaint={selectedComplaint} 
-              />
+              <ComplaintDetails complaint={selectedComplaint} />
             )}
           </Grid>
         </Grid>
       </Box>
 
-      <Button 
-        variant="contained" 
-        color="primary" 
-        startIcon={<AddIcon />} 
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<AddIcon />}
         onClick={handleOpenDialog}
-        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        sx={{ position: "fixed", bottom: 16, right: 16 }}
       >
         Add Complaint
       </Button>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Select Input Type</DialogTitle>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{analysisResult ? "Complaint Preview" : "Add Complaint"}</DialogTitle>
         <DialogContent>
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel id="input-type-label">Input Type</InputLabel>
-            <Select
-              labelId="input-type-label"
-              id="input-type-select"
-              value={inputType}
-              label="Input Type"
-              onChange={handleInputTypeChange}
-            >
-              <MenuItem value="text">Text</MenuItem>
-              <MenuItem value="voice">Voice</MenuItem>
-              <MenuItem value="image">Text & Picture</MenuItem>
-              <MenuItem value="video">Video</MenuItem>
-            </Select>
-          </FormControl>
-          {inputType && <ComplaintForm inputType={inputType} />}
+          {analysisResult ? (
+            <ComplaintPreview
+              analysisResult={analysisResult}
+              onBack={handleBack}
+              onSubmit={handleFinalSubmit}
+            />
+          ) : (
+            <>
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <InputLabel id="input-type-label">Input Type</InputLabel>
+                <Select
+                  labelId="input-type-label"
+                  id="input-type-select"
+                  value={inputType}
+                  label="Input Type"
+                  onChange={handleInputTypeChange}
+                >
+                  <MenuItem value="text">Text</MenuItem>
+                  <MenuItem value="voice">Voice</MenuItem>
+                  <MenuItem value="image">Text & Picture</MenuItem>
+                  <MenuItem value="video">Video</MenuItem>
+                </Select>
+              </FormControl>
+              {inputType && (
+                <ComplaintForm
+                  inputType={inputType}
+                  onAnalyze={handleAnalyze}
+                  initialText={complaintText}
+                />
+              )}
+            </>
+          )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleCloseDialog} variant="contained" color="primary">
-            Submit
-          </Button>
-        </DialogActions>
       </Dialog>
     </Layout>
   );
