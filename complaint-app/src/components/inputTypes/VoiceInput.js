@@ -1,3 +1,4 @@
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MicIcon from "@mui/icons-material/Mic";
 import PauseIcon from "@mui/icons-material/Pause";
@@ -18,6 +19,7 @@ const VoiceInput = ({ onChange }) => {
   const [audioUrl, setAudioUrl] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isTranscribed, setIsTranscribed] = useState(false);
   const mediaRecorder = useRef(null);
   const audioRef = useRef(null);
   const timerRef = useRef(null);
@@ -107,9 +109,12 @@ const VoiceInput = ({ onChange }) => {
 
   const handleTranscribe = async () => {
     if (!audioUrl) return;
-
+    setIsTranscribing(true);
+    setIsTranscribed(false);
     const transcription = await transcribeAudio(audioBlob.current);
     onChange({ file: audioBlob.current, text: transcription });
+    setIsTranscribing(false);
+    setIsTranscribed(true);
   };
 
   return (
@@ -146,9 +151,20 @@ const VoiceInput = ({ onChange }) => {
               variant="contained"
               color="primary"
               onClick={handleTranscribe}
-              disabled={isTranscribing}
+              disabled={isTranscribing || isTranscribed}
+              startIcon={
+                isTranscribing ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : isTranscribed ? (
+                  <CheckCircleIcon style={{ color: "green" }} />
+                ) : null
+              }
             >
-              {isTranscribing ? <CircularProgress size={24} /> : "Transcribe"}
+              {isTranscribing
+                ? "Transcribing..."
+                : isTranscribed
+                ? "Transcribed"
+                : "Transcribe"}
             </Button>
           </>
         )}
