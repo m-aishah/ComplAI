@@ -15,7 +15,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-
 import { useEffect, useState } from "react";
 import {
   Bar,
@@ -29,11 +28,15 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import ComplaintDetails from "../../components/ComplaintDetails";
-import ComplaintForm from "../../components/ComplaintForm";
-import ComplaintList from "../../components/ComplaintList";
-import Layout from "../../components/Layout";
-import ComplaintPreview from "../../components/ComplaintPreview";
+import { useRouter } from "next/navigation"; // Updated to next/navigation
+import { useAuth } from "@/lib/AuthContext";
+import { db } from "@/lib/firebase"; // Import Firebase Firestore
+import { addDoc, collection, query, onSnapshot } from "firebase/firestore";
+import Layout from "@/components/Layout";
+import ComplaintDetails from "@/components/ComplaintDetails";
+import ComplaintForm from "@/components/ComplaintForm";
+import ComplaintList from "@/components/ComplaintList";
+import ComplaintPreview from "@/components/ComplaintPreview";
 
 const COLORS = [
   "#0088FE",
@@ -44,40 +47,59 @@ const COLORS = [
   "#82ca9d",
 ];
 
-const pieData = [
-  { name: "Open", value: 32 },
-  { name: "In Progress", value: 52 },
-  { name: "Resolved", value: 47 },
-  { name: "Closed", value: 40 },
-];
-
-const barData = [
-  { name: "Billing", complaints: 65 },
-  { name: "Product", complaints: 45 },
-  { name: "Service", complaints: 98 },
-  { name: "Delivery", complaints: 39 },
-  { name: "Other", complaints: 43 },
-];
-
 export default function Dashboard() {
+  const { currentUser } = useAuth();
+  const router = useRouter();
   const [openDialog, setOpenDialog] = useState(false);
   const [inputType, setInputType] = useState("");
-  const [isClient, setIsClient] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
   const [complaintText, setComplaintText] = useState("");
+  const [complaints, setComplaints] = useState([]);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (!selectedComplaint && barData.length > 0) {
-      setSelectedComplaint(barData[0]);
+    if (!currentUser) {
+      router.push("/auth/login");
     }
-  }, [selectedComplaint]);
+  }, [currentUser, router]);
+
+  useEffect(() => {
+    if (currentUser) {
+      const q = query(collection(db, "complaints"));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const complaintsData = [];
+        querySnapshot.forEach((doc) => {
+          complaintsData.push({ id: doc.id, ...doc.data() });
+        });
+        console.log("Fetched complaints: ", complaintsData); // Debug line
+        setComplaints(complaintsData);
+      });
+  
+      return () => unsubscribe();
+    }
+  }, [currentUser]);  
+
+  const pieData = [
+    { name: "Open", value: complaints.filter((c) => c.status === "Open").length },
+    { name: "In Progress", value: complaints.filter((c) => c.status === "In Progress").length },
+    { name: "Resolved", value: complaints.filter((c) => c.status === "Resolved").length },
+    { name: "Closed", value: complaints.filter((c) => c.status === "Closed").length },
+  ];
+  
+  console.log("Pie chart data: ", pieData);
+  
+
+  const barData = complaints.reduce((acc, complaint) => {
+    const category = acc.find((item) => item.name === complaint.issue) || {
+      name: complaint.issue,
+      complaints: 0,
+    };
+    category.complaints += 1;
+    if (!acc.includes(category)) acc.push(category);
+    return acc;
+  }, []);
 
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => {
@@ -93,7 +115,6 @@ export default function Dashboard() {
 
   const handleComplaintClick = (complaint) => {
     setSelectedComplaint(complaint);
-    console.log("Selected complaint:", complaint);
   };
 
   const handleSearchChange = (event) => {
@@ -113,16 +134,19 @@ export default function Dashboard() {
     setAnalysisResult(null);
   };
 
-  const handleFinalSubmit = (finalResult) => {
-    // Handle final submission here
-    console.log("Final submission:", finalResult);
-    // You might want to send this data to your backend or update state
-    handleCloseDialog();
+  const handleFinalSubmit = async (finalResult) => {
+    try {
+      // Save the finalResult to Firestore
+      await addDoc(collection(db, "complaints"), finalResult); // Save to the 'complaints' collection
+  
+      console.log("Final submission:", finalResult);
+      alert("Complaint submitted successfully!");
+      handleCloseDialog(); // Close the dialog after submission
+    } catch (error) {
+      console.error("Error adding complaint to Firestore:", error);
+      alert("Failed to submit complaint. Please try again.");
+    }
   };
-
-  if (!isClient) {
-    return null;
-  }
 
   return (
     <Layout>
@@ -150,7 +174,7 @@ export default function Dashboard() {
                   justifyContent: "center",
                 }}
               >
-                171
+                {complaints.length}
               </Typography>
             </Paper>
           </Grid>
@@ -258,6 +282,7 @@ export default function Dashboard() {
                 </FormControl>
               </Box>
               <ComplaintList
+                complaints={complaints}
                 onComplaintClick={handleComplaintClick}
                 searchTerm={searchTerm}
                 filterStatus={filterStatus}
