@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
-import { Typography, Paper, IconButton, Divider, TextField, Button } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from "@mui/icons-material/Edit";
+import {
+  Button,
+  Divider,
+  IconButton,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useState } from "react";
 
-export default function ComplaintDetails({ complaint}) {
+export default function ComplaintDetails({ complaint }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editableComplaint, setEditableComplaint] = useState(complaint);
   const handleEdit = () => {
@@ -17,12 +23,19 @@ export default function ComplaintDetails({ complaint}) {
 
   const handleSave = () => {
     // Implement save logic here
-    console.log('Saved complaint:', editableComplaint);
+    console.log("Saved complaint:", editableComplaint);
     setIsEditing(false);
   };
 
   return (
-    <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <Paper
+      sx={{
+        p: 2,
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+      }}
+    >
       <Typography variant="h6" gutterBottom>
         Complaint Details
       </Typography>
@@ -30,9 +43,15 @@ export default function ComplaintDetails({ complaint}) {
 
       {!isEditing ? (
         <>
-          <Typography variant="body1"><strong>Customer:</strong> {editableComplaint.customer}</Typography>
-          <Typography variant="body1"><strong>Issue:</strong> {editableComplaint.issue}</Typography>
-          <Typography variant="body1"><strong>Status:</strong> {editableComplaint.status}</Typography>
+          <Typography variant="body1">
+            <strong>Customer:</strong> {editableComplaint.customer}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Issue:</strong> {editableComplaint.issue}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Status:</strong> {editableComplaint.status}
+          </Typography>
           <IconButton sx={{ mt: 2 }} color="primary" onClick={handleEdit}>
             <EditIcon />
           </IconButton>
@@ -63,7 +82,12 @@ export default function ComplaintDetails({ complaint}) {
             fullWidth
             sx={{ mb: 2 }}
           />
-          <Button variant="contained" color="primary" onClick={handleSave} sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSave}
+            sx={{ mt: 2 }}
+          >
             Save
           </Button>
         </>

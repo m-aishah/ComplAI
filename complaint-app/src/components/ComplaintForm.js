@@ -1,63 +1,114 @@
-import React, { useState } from 'react';
-import { Box, TextField, Button } from '@mui/material';
+import { addDoc, collection, getFirestore } from "firebase/firestore";
+import { useState } from "react";
 
-export default function ComplaintForm({ inputType }) {
-  const [complaintData, setComplaintData] = useState({});
+const ComplaintForm = () => {
+  const [complaintText, setComplaintText] = useState("");
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisHistory, setAnalysisHistory] = useState([]);
 
-  const handleInputChange = (event) => {
-    setComplaintData({ ...complaintData, [event.target.name]: event.target.value });
+  const handleChange = (e) => {
+    setComplaintText(e.target.value);
   };
 
-  const handleFileUpload = (event) => {
-    // Handle file upload logic here
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setAnalysisResult(null);
+    const result = await analyzeComplaint(complaintText);
+    setAnalysisResult(result);
+    setAnalysisHistory((prevHistory) => [...prevHistory, result]);
+    setComplaintText("");
   };
 
-  const handleVoiceInput = () => {
-    // Implement voice input logic using Web Speech API
+  const analyzeComplaint = async (text) => {
+    try {
+      const response = await fetch("/api/analyzeComplaint", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("API error:", errorData);
+        throw new Error(errorData.error || "Failed to analyze text");
+      }
+      const result = await response.json();
+      setAnalysisResult(result);
+      console.log(result);
+
+      if (result.isComplaint) {
+        await saveToFirebase(result);
+      }
+      return result;
+    } catch (error) {
+      console.error("Error analyzing text:", error);
+      return { error: error.message };
+    }
   };
 
-  switch (inputType) {
-    case 'text':
-      return (
-        <Box>
-          <TextField
-            fullWidth
-            margin="normal"
-            name="complaint"
-            label="Complaint Details"
-            multiline
-            rows={4}
-            onChange={handleInputChange}
-          />
-        </Box>
+  const saveToFirebase = async (complaintData) => {
+    try {
+      const db = getFirestore();
+      const complaintToSave = {
+        customerName: complaintData.customerName,
+        product: complaintData.product,
+        subProduct: complaintData.subProduct,
+        issue: complaintData.issue,
+        subIssue: complaintData.subIssue,
+        timestamp: new Date(),
+      };
+      const docRef = await addDoc(
+        collection(db, "complaints"),
+        complaintToSave
       );
-    case 'voice':
-      return (
-        <Box>
-          <Button onClick={handleVoiceInput}>Start Voice Input</Button>
-          {/* Add transcription display here */}
-        </Box>
-      );
-    case 'image':
-    case 'video':
-      return (
-        <Box>
-          <input
-            accept={inputType === 'image' ? "image/*" : "video/*"}
-            style={{ display: 'none' }}
-            id="raised-button-file"
-            multiple
-            type="file"
-            onChange={handleFileUpload}
-          />
-          <label htmlFor="raised-button-file">
-            <Button variant="contained" component="span">
-              Upload {inputType === 'image' ? 'Image' : 'Video'}
-            </Button>
-          </label>
-        </Box>
-      );
-    default:
-      return null;
-  }
-}
+      console.log("Document written with ID: ", docRef.id);
+    } catch (error) {
+      console.error("Error saving to Firebase:", error);
+    }
+  };
+
+  return (
+    <div className="complaint-form">
+      <h2>Submit a Complaint</h2>
+      <form onSubmit={handleSubmit}>
+        <textarea
+          value={complaintText}
+          onChange={handleChange}
+          placeholder="Enter your complaint here..."
+          rows="6"
+          required
+        />
+        <button type="submit">Analyze Complaint</button>
+      </form>
+
+      {analysisResult && (
+        <div className="analysis-result">
+          <h3>Latest Analysis Result:</h3>
+          {analysisResult.error ? (
+            <p>{analysisResult.error}</p>
+          ) : (
+            <>
+              <p>
+                {analysisResult.isComplaint
+                  ? "This is a complaint."
+                  : "This is not a complaint."}
+              </p>
+              {analysisResult.isComplaint && (
+                <>
+                  <p>Customer Name: {analysisResult.customerName}</p>
+                  <p>Product: {analysisResult.product}</p>
+                  <p>Sub-Product: {analysisResult.subProduct}</p>
+                  <p>Issue: {analysisResult.issue}</p>
+                  <p>Sub-Issue: {analysisResult.subIssue}</p>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ComplaintForm;
