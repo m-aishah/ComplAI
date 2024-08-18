@@ -1,22 +1,26 @@
-import { useState, useCallback } from "react";
-import { Button, Box, Typography, TextField, IconButton } from "@mui/material";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CloseIcon from "@mui/icons-material/Close";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { Box, IconButton, TextField, Typography } from "@mui/material";
+import Image from "next/image";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 const ImageInput = ({ onChange }) => {
   const [preview, setPreview] = useState(null);
   const [text, setText] = useState("");
 
-  const onDrop = useCallback((acceptedFiles) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => setPreview(e.target.result);
-      reader.readAsDataURL(file);
-      onChange({ file, text });
-    }
-  }, [onChange, text]);
+  const onDrop = useCallback(
+    (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => setPreview(e.target.result);
+        reader.readAsDataURL(file);
+        onChange({ file, text });
+      }
+    },
+    [onChange, text]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -50,7 +54,16 @@ const ImageInput = ({ onChange }) => {
         <input {...getInputProps()} />
         {preview ? (
           <Box sx={{ position: "relative" }}>
-            <img src={preview} alt="Preview" style={{ maxWidth: "100%", maxHeight: 200, display: "block", margin: "0 auto" }} />
+            <Image
+              src={preview}
+              alt="Preview"
+              style={{
+                maxWidth: "100%",
+                maxHeight: 200,
+                display: "block",
+                margin: "0 auto",
+              }}
+            />
             <IconButton
               sx={{ position: "absolute", top: 0, right: 0 }}
               onClick={(e) => {
@@ -65,7 +78,9 @@ const ImageInput = ({ onChange }) => {
           <Box>
             <CloudUploadIcon sx={{ fontSize: 48, color: "#999" }} />
             <Typography>
-              {isDragActive ? "Drop the image here" : "Drag & drop an image here, or click to select"}
+              {isDragActive
+                ? "Drop the image here"
+                : "Drag & drop an image here, or click to select"}
             </Typography>
           </Box>
         )}
