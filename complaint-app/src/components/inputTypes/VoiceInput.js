@@ -86,7 +86,7 @@ const VoiceInput = ({ onChange }) => {
       return data.transcription;
     } catch (error) {
       console.error("Error transcribing audio:", error);
-      return "{"_index": "complaint-public-v2", "_type": "_doc", "_id": "9688209", "_score": null, "_source": {"product": "Credit card", "complaint_what_happened": "Just opened my credit card acct and was told I had fraud on it and they needed to verify my identity. they ask me my number and my security question only to tell me that I have to wait XXXX business for a letter in the mail. So I'm out of town with no card to us. never went over my purchases to see if I made them which I did. This happened because I was trying to upload my card to my XXXX wallet", "date_sent_to_company": "2024-08-03T12:00:00-05:00", "issue": "Trouble using your card", "sub_product": "General-purpose credit card or charge card", "zip_code": "55418", "tags": "Servicemember", "complaint_id": "9688209", "timely": "Yes", "consumer_consent_provided": "Consent provided", "company_response": "Closed with explanation", "submitted_via": "Web", "company": "CITIBANK, N.A.", "date_received": "2024-08-03T12:00:00-05:00", "state": "MN", "consumer_disputed": "N/A", "company_public_response": "Company has responded to the consumer and the CFPB and chooses not to provide a public response", "sub_issue": "Can't use card to make purchases"}, "sort": [7706]}";
+      return "Error transcribing audio";
     } finally {
       setIsTranscribing(false);
     }
