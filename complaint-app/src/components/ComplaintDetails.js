@@ -1,4 +1,3 @@
-
 import EditIcon from "@mui/icons-material/Edit";
 import {
   Button,
@@ -8,7 +7,9 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase"; // Ensure you have Firebase configured and imported
 
 export default function ComplaintDetails({ complaint }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -28,10 +29,25 @@ export default function ComplaintDetails({ complaint }) {
     setEditableComplaint({ ...editableComplaint, [name]: value });
   };
 
-  const handleSave = () => {
-    // Implement save logic here
-    console.log("Saved complaint:", editableComplaint);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      // Update the complaint in Firestore
+      const complaintRef = doc(db, "complaints", editableComplaint.id);
+      await updateDoc(complaintRef, {
+        customerName: editableComplaint.customerName,
+        issue: editableComplaint.issue,
+        status: editableComplaint.status,
+        product: editableComplaint.product,
+        subProduct: editableComplaint.subProduct,
+        subIssue: editableComplaint.subIssue,
+        // Add other fields that you want to update
+      });
+      console.log("Complaint updated successfully");
+    } catch (error) {
+      console.error("Error updating complaint:", error);
+    } finally {
+      setIsEditing(false);
+    }
   };
 
   return (
@@ -51,10 +67,19 @@ export default function ComplaintDetails({ complaint }) {
       {!isEditing ? (
         <>
           <Typography variant="body1">
-            <strong>Customer:</strong> {editableComplaint.customer}
+            <strong>Customer:</strong> {editableComplaint.customerName}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Product:</strong> {editableComplaint.product}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Sub-Product:</strong> {editableComplaint.subProduct}
           </Typography>
           <Typography variant="body1">
             <strong>Issue:</strong> {editableComplaint.issue}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Sub-Issue:</strong> {editableComplaint.subIssue}
           </Typography>
           <Typography variant="body1">
             <strong>Status:</strong> {editableComplaint.status}
@@ -67,8 +92,24 @@ export default function ComplaintDetails({ complaint }) {
         <>
           <TextField
             label="Customer"
-            name="customer"
-            value={editableComplaint.customer}
+            name="customerName"
+            value={editableComplaint.customerName}
+            onChange={handleInputChange}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="Product"
+            name="product"
+            value={editableComplaint.product}
+            onChange={handleInputChange}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="Sub-Product"
+            name="subProduct"
+            value={editableComplaint.subProduct}
             onChange={handleInputChange}
             fullWidth
             sx={{ mb: 2 }}
@@ -77,6 +118,14 @@ export default function ComplaintDetails({ complaint }) {
             label="Issue"
             name="issue"
             value={editableComplaint.issue}
+            onChange={handleInputChange}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="Sub-Issue"
+            name="subIssue"
+            value={editableComplaint.subIssue}
             onChange={handleInputChange}
             fullWidth
             sx={{ mb: 2 }}

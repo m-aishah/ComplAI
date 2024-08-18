@@ -1,4 +1,11 @@
 "use client";
+import ComplaintDetails from "@/components/ComplaintDetails";
+import ComplaintForm from "@/components/ComplaintForm";
+import ComplaintList from "@/components/ComplaintList";
+import ComplaintPreview from "@/components/ComplaintPreview";
+import Layout from "@/components/Layout";
+import { useAuth } from "@/lib/AuthContext";
+import { db } from "@/lib/firebase"; // Import Firebase Firestore
 import AddIcon from "@mui/icons-material/Add";
 import {
   Box,
@@ -15,69 +22,109 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-
-import { useEffect, useState } from "react";
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Chart,
   Legend,
-  Pie,
-  PieChart,
+  LinearScale,
+  Title,
   Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import ComplaintDetails from "../../components/ComplaintDetails";
-import ComplaintForm from "../../components/ComplaintForm";
-import ComplaintList from "../../components/ComplaintList";
-import ComplaintPreview from "../../components/ComplaintPreview";
-import Layout from "../../components/Layout";
+} from "chart.js";
+import { addDoc, collection, onSnapshot, query } from "firebase/firestore";
+import { useRouter } from "next/navigation"; // Updated to next/navigation
+import { useEffect, useState } from "react";
+import { Bar, Doughnut } from "react-chartjs-2";
 
-const COLORS = [
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#FF8042",
-  "#8884d8",
-  "#82ca9d",
-];
-
-const pieData = [
-  { name: "Open", value: 32 },
-  { name: "In Progress", value: 52 },
-  { name: "Resolved", value: 47 },
-  { name: "Closed", value: 40 },
-];
-
-const barData = [
-  { name: "Billing", complaints: 65 },
-  { name: "Product", complaints: 45 },
-  { name: "Service", complaints: 98 },
-  { name: "Delivery", complaints: 39 },
-  { name: "Other", complaints: 43 },
-];
+Chart.register(
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function Dashboard() {
+  const { currentUser } = useAuth();
+  const router = useRouter();
   const [openDialog, setOpenDialog] = useState(false);
   const [inputType, setInputType] = useState("");
-  const [isClient, setIsClient] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
   const [complaintText, setComplaintText] = useState("");
+  const [complaints, setComplaints] = useState([]);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (!selectedComplaint && barData.length > 0) {
-      setSelectedComplaint(barData[0]);
+    if (!currentUser) {
+      router.push("/auth/login");
     }
-  }, [selectedComplaint]);
+  }, [currentUser, router]);
+
+  useEffect(() => {
+    if (currentUser) {
+      const q = query(collection(db, "complaints"));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const complaintsData = [];
+        querySnapshot.forEach((doc) => {
+          complaintsData.push({ id: doc.id, ...doc.data() });
+        });
+        setComplaints(complaintsData);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [currentUser]);
+
+  const pieData = {
+    labels: ["Open", "In Progress", "Resolved", "Closed"],
+    datasets: [
+      {
+        label: "Status",
+        data: [
+          complaints.filter((c) => c.status === "Open").length,
+          complaints.filter((c) => c.status === "In Progress").length,
+          complaints.filter((c) => c.status === "Resolved").length,
+          complaints.filter((c) => c.status === "Closed").length,
+        ],
+        backgroundColor: ["#36A2EB", "#FFCE56", "#FF6384", "#4BC0C0"],
+        hoverOffset: 4,
+      },
+    ],
+  };
+
+  const barData = {
+    labels: [...new Set(complaints.map((complaint) => complaint.issue))],
+    datasets: [
+      {
+        label: "Complaints",
+        data: complaints.reduce(
+          (acc, complaint) => {
+            const index = acc.labels.indexOf(complaint.issue);
+            acc.data[index] += 1;
+            return acc;
+          },
+          {
+            labels: [
+              ...new Set(complaints.map((complaint) => complaint.issue)),
+            ],
+            data: Array(
+              [...new Set(complaints.map((complaint) => complaint.issue))]
+                .length
+            ).fill(0),
+          }
+        ).data,
+        backgroundColor: "#36A2EB",
+        borderColor: "#36A2EB",
+        borderWidth: 1,
+        borderRadius: 5,
+      },
+    ],
+  };
 
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => {
@@ -93,7 +140,6 @@ export default function Dashboard() {
 
   const handleComplaintClick = (complaint) => {
     setSelectedComplaint(complaint);
-    console.log("Selected complaint:", complaint);
   };
 
   const handleSearchChange = (event) => {
@@ -113,28 +159,29 @@ export default function Dashboard() {
     setAnalysisResult(null);
   };
 
-  const handleFinalSubmit = (finalResult) => {
-    // Handle final submission here
-    console.log("Final submission:", finalResult);
-    // You might want to send this data to your backend or update state
-    handleCloseDialog();
+  const handleFinalSubmit = async (finalResult) => {
+    try {
+      // Save the finalResult to Firestore
+      await addDoc(collection(db, "complaints"), finalResult);
+      alert("Complaint submitted successfully!");
+      handleCloseDialog();
+    } catch (error) {
+      console.error("Error adding complaint to Firestore:", error);
+      alert("Failed to submit complaint. Please try again.");
+    }
   };
-
-  if (!isClient) {
-    return null;
-  }
 
   return (
     <Layout>
       <Box sx={{ flexGrow: 1, p: 3 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6} lg={3}>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={4}>
             <Paper
               sx={{
                 p: 2,
                 display: "flex",
                 flexDirection: "column",
-                height: 240,
+                height: 200, // Reduced height for better balance
               }}
             >
               <Typography variant="h6" gutterBottom>
@@ -150,11 +197,12 @@ export default function Dashboard() {
                   justifyContent: "center",
                 }}
               >
-                171
+                {complaints.length}
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
+
+          <Grid item xs={12} md={4}>
             <Paper
               sx={{
                 p: 2,
@@ -175,30 +223,15 @@ export default function Dashboard() {
                   alignItems: "center",
                 }}
               >
-                <PieChart width={160} height={160}>
-                  <Pie
-                    data={pieData}
-                    cx={80}
-                    cy={80}
-                    innerRadius={50}
-                    outerRadius={70}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                <Doughnut
+                  data={pieData}
+                  options={{ maintainAspectRatio: false }}
+                />
               </Box>
             </Paper>
           </Grid>
-          <Grid item xs={12} lg={6}>
+
+          <Grid item xs={12} md={4}>
             <Paper
               sx={{
                 p: 2,
@@ -211,29 +244,20 @@ export default function Dashboard() {
                 Complaints by Category
               </Typography>
               <Box sx={{ width: "100%", height: "100%" }}>
-                <BarChart
-                  width={500}
-                  height={240}
-                  data={barData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 20,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="complaints" fill="#8884d8" />
-                </BarChart>
+                <Bar data={barData} options={{ maintainAspectRatio: false }} />
               </Box>
             </Paper>
           </Grid>
+
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
+            <Paper
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+              }}
+            >
               <Box sx={{ mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   Recent Complaints
@@ -258,6 +282,7 @@ export default function Dashboard() {
                 </FormControl>
               </Box>
               <ComplaintList
+                complaints={complaints}
                 onComplaintClick={handleComplaintClick}
                 searchTerm={searchTerm}
                 filterStatus={filterStatus}
@@ -265,9 +290,19 @@ export default function Dashboard() {
               />
             </Paper>
           </Grid>
+
           <Grid item xs={12} md={6}>
             {selectedComplaint && (
-              <ComplaintDetails complaint={selectedComplaint} />
+              <Paper
+                sx={{
+                  p: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                }}
+              >
+                <ComplaintDetails complaint={selectedComplaint} />
+              </Paper>
             )}
           </Grid>
         </Grid>
