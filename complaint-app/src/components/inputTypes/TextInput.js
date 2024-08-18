@@ -1,32 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TextField, IconButton, InputAdornment, Typography, Box } from "@mui/material";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CloseIcon from "@mui/icons-material/Close";
 
 const TextInput = ({ value, onChange }) => {
+  const [text, setText] = useState(value);
   const [file, setFile] = useState(null);
 
+  useEffect(() => {
+    setText(value);
+  }, [value]);
+
   const handleTextChange = (e) => {
-    onChange({ text: e.target.value });
+    const newText = e.target.value;
+    setText(newText);
+    onChange({ text: newText });
   };
 
   const handleFileUpload = (e) => {
     const uploadedFile = e.target.files[0];
     if (uploadedFile) {
       setFile(uploadedFile);
-      onChange({ file: uploadedFile });
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileContent = event.target.result;
+        setText(fileContent);
+        onChange({ text: fileContent, file: uploadedFile });
+      };
+      reader.readAsText(uploadedFile);
     }
   };
 
   const removeFile = () => {
     setFile(null);
-    onChange({ file: null });
+    setText('');
+    onChange({ text: '', file: null });
   };
 
   return (
     <Box>
       <TextField
-        value={value}
+        value={text}
         onChange={handleTextChange}
         placeholder="Enter your complaint here..."
         fullWidth

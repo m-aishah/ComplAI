@@ -4,6 +4,7 @@ export async function analyzeComplaint(
   complaintText = "No complaint text provided"
 ) {
   try {
+    console.log("COmplaint text:", complaintText);
     console.log("Analyzing text:", complaintText);
     const response = await openai.chat.completions.create({
       model: "gpt-4o",

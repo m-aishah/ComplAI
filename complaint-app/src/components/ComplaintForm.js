@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Box, Button } from "@mui/material";
 import TextInput from "./inputTypes/TextInput";
 import VoiceInput from "./inputTypes/VoiceInput";
@@ -11,27 +11,27 @@ const ComplaintForm = ({ inputType, onAnalyze, initialText = "" }) => {
     file: null,
   });
 
-  const handleChange = (newData) => {
+  const handleChange = useCallback((newData) => {
     setComplaintData((prevData) => ({ ...prevData, ...newData }));
-  };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("text", complaintData.text);
-    if (complaintData.file) {
-      formData.append("file", complaintData.file);
-    }
-
-    const result = await analyzeComplaint(formData);
+    
+    // We just need to pass the text directly for analysis
+    const result = await analyzeComplaint(complaintData.text);
     onAnalyze(result, complaintData.text);
   };
 
-  const analyzeComplaint = async (formData) => {
+  const analyzeComplaint = async (text) => {
+    console.log("Text for analysis:", text);
     try {
       const response = await fetch("/api/analyzeComplaint", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
       });
       if (!response.ok) {
         const errorData = await response.json();
